@@ -10,9 +10,6 @@ License: Apache License, Version 2.0 and ISC
 Group: Applications/System
 Source: %{name}-%{version}-%{release}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Requires: rsync
-Requires: simp-environment >= 6.2.5
-Requires: acl
 
 Provides: simp_rsync_filestore = %{version}
 Obsoletes: simp_rsync_filestore >= 1.0.0
@@ -43,8 +40,6 @@ tar --exclude-vcs -cf - environments | (cd %{buildroot}/var/simp && tar -xBf -)
 %files
 %defattr(0640,root,root,0750)
 %doc CONTRIBUTING.md LICENSE README.md
-%config %{rsync_dir}/.rsync.facl
-%config(noreplace) %{rsync_dir}
 
 %pre
 #!/bin/sh
@@ -80,21 +75,6 @@ fi
 #!/bin/sh
 # Post installation stuff
 
-cd %{rsync_dir};
-
-# Create a CentOS link if a directory or link doesn't exist
-for dir in `find . -type d -name 'RedHat'`; do
-  (
-    cd $dir/..
-
-    if [ ! -d "CentOS" ] && [ ! -h "CentOS" ]; then
-      ln -sf RedHat CentOS;
-    fi
-  )
-done
-
-find . -type f -name "*.rpmnew" -delete
-
 # Set the FACLs on the files so that we don't make a Windows box
 setfacl --restore=.rsync.facl 2>/dev/null;
 
@@ -110,6 +90,10 @@ fi
 %postun
 # Post uninstall stuff
 %changelog
+* Fri May 09 2019 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0-1
+- Create branch for simp-rsync rpm.  This will allow a build of a final
+  simp-rsync rpm that will not remove any files when upgraded.
+
 * Thu Oct 26 2017 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0-0
 - The selinux policy in simp-environment was changing settings on rsync
   files not in the simp environment.  If DNS and DHCP were running in an
